@@ -5,43 +5,48 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       # Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Ensure you fetch the full history (important for some Buildozer use cases)
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      # Set the date using environment files (replacing the deprecated 'set-output' command)
+      # Get the current date for caching
       - name: Get Date
         id: get-date
-        run: echo "date=$(date -u '+%Y%m%d')" >> $GITHUB_ENV
+        run: |
+          echo "date=$(date -u '+%Y%m%d')" >> $GITHUB_ENV
+        shell: bash
 
-      # Cache Buildozer global directory
+      # Cache the Buildozer global directory
       - name: Cache Buildozer global directory
         uses: actions/cache@v3
         with:
-          path: ~/.buildozer  # Global directory for Buildozer
-          key: buildozer-global-${{ hashFiles('DemoApp/buildozer.spec') }}
+          path: .buildozer_global
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
 
-      # Cache Buildozer dependencies directory (specific to the DemoApp directory)
-      - name: Cache Buildozer project build directory
+      # Cache the Buildozer project directory
+      - name: Cache Buildozer project directory
         uses: actions/cache@v3
         with:
-          path: DemoApp/.buildozer  # Project-specific build directory for DemoApp
-          key: ${{ runner.os }}-${{ env.date }}-${{ hashFiles('DemoApp/buildozer.spec') }}
+          path: .buildozer
+          key: buildozer-${{ runner.os }}-${{ env.date }}-${{ hashFiles('buildozer.spec') }}
 
-      # Navigate to the DemoApp directory and build the APK using Buildozer
+      # Navigate to the correct directory (update with your project path if needed)
+      - name: Change Directory to Project
+        run: cd ./DemoApp # Replace `DemoApp` with your actual directory if it's different
+
+      # Build the APK using Buildozer
       - name: Build APK with Buildozer
-        run: |
-          cd DemoApp
-          buildozer android debug  # Build the APK
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: android debug
+          buildozer_version: stable
 
-      # Upload artifacts
-      - name: Upload artifacts
+      # Upload the generated APK as an artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: package
-          path: DemoApp/bin/*.apk  # Replace with the actual path where Buildozer outputs the APK
+          name: apk-package
+          path: bin/*.apk

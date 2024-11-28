@@ -33,9 +33,12 @@ jobs:
           path: DemoApp/.buildozer
           key: buildozer-${{ runner.os }}-${{ env.date }}-${{ hashFiles('DemoApp/buildozer.spec') }}
 
+      # Change to the DemoApp directory before running Buildozer
+      - name: Set working directory
+        run: cd DemoApp
+
       # Build the APK using Buildozer
       - name: Build APK with Buildozer
-        working-directory: DemoApp
         uses: ArtemSBulgakov/buildozer-action@v1
         with:
           command: android debug

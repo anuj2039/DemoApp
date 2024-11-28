@@ -9,7 +9,8 @@ jobs:
 
     steps:
       # Checkout the repository
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Ensure you fetch the full history (important for some Buildozer use cases)
 
@@ -26,23 +27,21 @@ jobs:
           key: buildozer-global-${{ hashFiles('DemoApp/buildozer.spec') }}
 
       # Cache Buildozer dependencies directory (specific to the DemoApp directory)
-      - uses: actions/cache@v3
+      - name: Cache Buildozer project build directory
+        uses: actions/cache@v3
         with:
           path: DemoApp/.buildozer  # Project-specific build directory for DemoApp
           key: ${{ runner.os }}-${{ env.date }}-${{ hashFiles('DemoApp/buildozer.spec') }}
 
       # Navigate to the DemoApp directory and build the APK using Buildozer
-      - name: Build with Buildozer
-        working-directory: DemoApp  # Set the working directory to DemoApp
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer android debug  # Build the APK
-          buildozer_version: stable
+      - name: Build APK with Buildozer
+        run: |
+          cd DemoApp
+          buildozer android debug  # Build the APK
 
       # Upload artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: package
-          path: DemoApp/${{ steps.buildozer.outputs.filename }}  # Ensure the output path references the DemoApp directory
+          path: DemoApp/bin/*.apk  # Replace with the actual path where Buildozer outputs the APK

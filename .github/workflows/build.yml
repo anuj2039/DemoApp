@@ -23,22 +23,19 @@ jobs:
       - name: Cache Buildozer global directory
         uses: actions/cache@v3
         with:
-          path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+          path: DemoApp/.buildozer_global
+          key: buildozer-global-${{ hashFiles('DemoApp/buildozer.spec') }}
 
       # Cache the Buildozer project directory
       - name: Cache Buildozer project directory
         uses: actions/cache@v3
         with:
-          path: .buildozer
-          key: buildozer-${{ runner.os }}-${{ env.date }}-${{ hashFiles('buildozer.spec') }}
-
-      # Navigate to the correct directory (update with your project path if needed)
-      - name: Change Directory to Project
-        run: cd ./DemoApp # Replace `DemoApp` with your actual directory if it's different
+          path: DemoApp/.buildozer
+          key: buildozer-${{ runner.os }}-${{ env.date }}-${{ hashFiles('DemoApp/buildozer.spec') }}
 
       # Build the APK using Buildozer
       - name: Build APK with Buildozer
+        working-directory: DemoApp
         uses: ArtemSBulgakov/buildozer-action@v1
         with:
           command: android debug
@@ -49,4 +46,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: apk-package
-          path: bin/*.apk
+          path: DemoApp/bin/*.apk
